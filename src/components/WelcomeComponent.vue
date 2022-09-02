@@ -1,10 +1,14 @@
 <template>
   <div class="hello">
     <h1>Teste pratico QuiteJa</h1>
-    <h2>
-      {{ msg }}
-    </h2>
-    <h2>Links importantes</h2>
+    <div class="mt-2">
+      <h2>
+        {{ msg }}
+      </h2>
+    </div>
+    <div class="mt-2">
+      <h2>Essas foram as ferramentas utilizadas</h2>
+    </div>
     <ul class="d-flex align-center justify-center">
       <li>
         <a href="https://router.vuejs.org" target="_blank" rel="noopener"
@@ -28,6 +32,11 @@
           target="_blank"
           rel="noopener"
           >vuetify</a
+        >
+      </li>
+      <li>
+        <a href="https://axios-http.com/ptbr/" target="_blank" rel="noopener"
+          >Axios</a
         >
       </li>
     </ul>
@@ -60,18 +69,23 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+.mt-2 {
+  margin-top: 8px;
+}
 h3 {
   margin: 40px 0 0;
 }
 ul {
   list-style-type: none;
-  padding: 0;
+  padding: 10px;
 }
 li {
   display: inline-block;
   margin: 0 10px;
+  &:hover{
+    font-weight: bold;
+  }
 }
 a {
   color: #42b983;

@@ -4,7 +4,10 @@
       data-app
       :headers="headers"
       :items="usersList"
-      :items-per-page="5"
+      :loading="loadingTable"
+      :items-per-page="itemsPerPage"
+      :page="actualPage"
+      @update:options="setPagination"
       class="elevation-1"
     >
       <template v-slot:top>
@@ -28,7 +31,7 @@
                       <v-col cols="12" sm="6" md="6">
                         <v-text-field
                           v-model="editedItem.firstName"
-                          :rules="[rules.nameRules]"
+                          :rules="[rules.fNameRules]"
                           placeholder="John"
                           label="First name"
                           required
@@ -37,7 +40,7 @@
                       <v-col cols="12" sm="6" md="6">
                         <v-text-field
                           v-model="editedItem.lastName"
-                          :rules="[rules.nameRules]"
+                          :rules="[rules.lNameRules]"
                           placeholder="Smith"
                           label="LastName"
                           required
@@ -47,6 +50,7 @@
                         <v-select
                           :items="titles"
                           v-model="editedItem.title"
+                          :rules="[rules.required]"
                           label="Title"
                           placeholder="Ms..."
                           required
@@ -124,6 +128,9 @@ export default {
     dialogDelete: false,
     formError: null,
     loadingForm: false,
+    loadingTable: false,
+    actualPage: 1,
+    itemsPerPage: 10,
     headers: [
       { text: "ID", align: "start", sortable: false, value: "id" },
       { text: "First Name", value: "firstName" },
@@ -132,7 +139,8 @@ export default {
     ],
     rules: {
       required: (value) => !!value || "Required.",
-      nameRules: (v) => !!v || "Name is required",
+      fNameRules: (v) => !!v || "First name is required",
+      lNameRules: (v) => !!v || "Last name is required",
       email: (value) => {
         const pattern =
           /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -148,9 +156,25 @@ export default {
       email: "",
     },
   }),
-  created() {
-    this.fetchData();
+  async created() {
+    Object.entries(this.$route.query).forEach(([key, value]) => {
+      console.log("Switch");
+      console.log(key, value);
+      switch (key) {
+        case "limit":
+          this.itemsPerPage = parseInt(value);
+          break;
+        case "page":
+          this.actualPage = value;
+          break;
+      }
+    });
+
+    this.loadingTable = true;
+    await this.fetchData();
+    this.loadingTable = false;
   },
+
   computed: {
     ...mapGetters("users", {
       usersList: "list",
@@ -162,11 +186,11 @@ export default {
     },
   },
   watch: {
-    dialog(val) {
-      val || this.close();
+    dialog(value) {
+      value || this.close();
     },
-    dialogDelete(val) {
-      val || this.closeDelete();
+    dialogDelete(value) {
+      value || this.closeDelete();
     },
   },
   methods: {
@@ -178,6 +202,16 @@ export default {
       createUser: "createUser",
       deleteUser: "deleteUser",
     }),
+    setPagination(e) {
+      console.log(e);
+      this.itemsPerPage = e.itemsPerPage; 
+      this.actualPage = e.page;
+
+      this.$router.replace({
+        path: "",
+        query: { limit: this.itemsPerPage, page: this.actualPage },
+      });
+    },
     isEditing() {
       this.formTitle == "New user" ? true : false;
     },
@@ -229,9 +263,7 @@ export default {
           newUser.title = "";
         }
         await this.createUser(JSON.stringify(newUser))
-          .then((e) => {
-            console.log(e);
-
+          .then(() => {
             this.close();
           })
           .catch((e) => {
@@ -239,15 +271,15 @@ export default {
               let { data } = e.response.data;
               if (data.title) {
                 this.loadingForm = false;
-                this.formError = "Title is required.";
+                this.formError = "This title is invalid";
               }
               if (data.firstName) {
                 this.loadingForm = false;
-                this.formError = "First name is required.";
+                this.formError = "This first name is invalid";
               }
               if (data.lastName) {
                 this.loadingForm = false;
-                this.formError = "Last name is required.";
+                this.formError = "This last name is invalid";
               }
               if (data.email) {
                 this.loadingForm = false;
