@@ -76,10 +76,6 @@ li {
 a {
   color: #42b983;
 }
-.users-link {
-  color: #263238;
-  text-decoration: none;
-}
 .lgif,
 .rgif {
   bottom: -18px;

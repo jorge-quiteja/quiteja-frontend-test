@@ -1,41 +1,80 @@
+import api from '@/api/index';
+
 export default {
-    namespaced: true,
-    state: {
-        usersList: [
-          {id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com'},
-          {id: 2, firstName: 'Jo', lastName: 'Do', email: 'jo@example.com'},
-          {id: 3, firstName: 'Hn', lastName: 'Oe', email: 'hn@example.com'},
-          {id: 4, firstName: 'Mn', lastName: 'Oe', email: 'nn@example.com'},
-          {id: 5, firstName: 'Mary', lastName: 'Mey', email: 'mary@example.com'}
-        ]
-      },
-      getters: {
-        usersList(state) {
-          return state.usersList;
-        } 
-      },
-      mutations: {
-        updateUser(state, {userIndex, user}) {
-          state.usersList[userIndex] = user;
-        },
-        createUser(state, user) {
-          state.usersList.push(user);
-        },
-        deleteUser(state, userId) {
-          state.usersList.splice(userId, 1);
-        },
-      },
-      actions: {
-        updateUser({state, commit}, user) {
-          let userIndex = state.usersList.findIndex(x => x.id == user.id)
-          commit('updateUser', {userIndex, user});
-        },
-        createUser({commit}, user) {
-          commit('createUser', user);
-        },
-        deleteUser({state, commit}, userId) {
-          let userIndex = state.usersList.findIndex(x => x.id == userId)
-          commit('deleteUser', userIndex);
-        }
-      }
+  namespaced: true,
+  state: {
+    list: [],
+    editedItem: {
+      title: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+    },
+  },
+  getters: {
+    list(state) {
+      return state.list;
+    },
+    editedItem(state) {
+      return state.editedItem;
+    },
+  },
+  mutations: {
+    setData(state, data) {
+      state.list = data;
+    },
+    setEditedItem(state, data) {
+      state.editedItem = data;
+    },
+  },
+  actions: {
+    async fetchData({ commit }) {
+      await api.get(`/user`).then(res => {
+        commit('setData', res);
+      }).catch(err => {
+        console.error(err);
+      });
+    },
+    async fetchUser({ commit }, id) {
+      api.getById(`/user/${id}`)
+        .then(res => {
+          commit('setEditedItem', res);
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    },
+    async updateUser({ dispatch }, user) {
+      await api.update(`/user/${user.id}`, user)
+        .then(() => {
+          dispatch('fetchData');
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    async createUser({ dispatch }, user) {
+        await api.create(`/user/create`, user)
+          .then(res => {
+            console.log(res);
+            dispatch('fetchData');
+          })
+          .catch(err => {
+            console.log(err);
+          });
+
+    },
+    async deleteUser({ dispatch }, userId) {
+        await api.delete(`/user/${userId}`)
+          .then(() => {
+            dispatch('fetchData');
+          })
+          .catch(err => {
+            console.error(err);
+          });
+    },
+    updateEdited({ commit }, item) {
+      commit('setEditedItem', item);
+    },
+  }
 }
