@@ -178,6 +178,7 @@ export default {
           break;
       }
     });
+    this.navigationLocked = false;
   },
   computed: {
     ...mapGetters("users", {
@@ -214,9 +215,8 @@ export default {
         this.$router.replace({
           path: "",
           query: { limit: this.itemsPerPage, page: this.currentPage },
-        });
+        }).catch(() => {});
       }
-      this.navigationLocked == false
     },
     isEditing() {
       this.formTitle == "New user" ? true : false;
