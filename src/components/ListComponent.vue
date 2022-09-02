@@ -6,7 +6,7 @@
       :items="usersList"
       :loading="loadingTable"
       :items-per-page="itemsPerPage"
-      :page="actualPage"
+      :page="currentPage"
       @update:options="setPagination"
       class="elevation-1"
     >
@@ -125,12 +125,21 @@ export default {
   name: "ListComponent",
   data: () => ({
     dialog: false,
-    dialogDelete: false,
     formError: null,
     loadingForm: false,
+    dialogDelete: false,
     loadingTable: false,
-    actualPage: 1,
+    currentPage: 1,
+    editedIndex: -1,
     itemsPerPage: 10,
+    navigationLocked: true,
+    titles: ["mr", "ms", "mrs", "miss", "dr", "none"],
+    defaultItem: {
+      title: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+    },
     headers: [
       { text: "ID", align: "start", sortable: false, value: "id" },
       { text: "First Name", value: "firstName" },
@@ -147,34 +156,29 @@ export default {
         return pattern.test(value) || "Invalid e-mail.";
       },
     },
-    editedIndex: -1,
-    titles: ["mr", "ms", "mrs", "miss", "dr", "none"],
-    defaultItem: {
-      title: "",
-      firstName: "",
-      lastName: "",
-      email: "",
-    },
   }),
   async created() {
+    this.navigationLocked = true;
     Object.entries(this.$route.query).forEach(([key, value]) => {
-      console.log("Switch");
-      console.log(key, value);
       switch (key) {
         case "limit":
           this.itemsPerPage = parseInt(value);
           break;
-        case "page":
-          this.actualPage = value;
-          break;
       }
     });
-
     this.loadingTable = true;
     await this.fetchData();
     this.loadingTable = false;
   },
-
+  updated() {
+    Object.entries(this.$route.query).forEach(([key, value]) => {
+      switch (key) {
+        case "page":
+          this.currentPage = parseInt(value);
+          break;
+      }
+    });
+  },
   computed: {
     ...mapGetters("users", {
       usersList: "list",
@@ -203,14 +207,16 @@ export default {
       deleteUser: "deleteUser",
     }),
     setPagination(e) {
-      console.log(e);
-      this.itemsPerPage = e.itemsPerPage; 
-      this.actualPage = e.page;
+      if (this.navigationLocked == false) {
+        this.itemsPerPage = e.itemsPerPage;
+        this.currentPage = e.page;
 
-      this.$router.replace({
-        path: "",
-        query: { limit: this.itemsPerPage, page: this.actualPage },
-      });
+        this.$router.replace({
+          path: "",
+          query: { limit: this.itemsPerPage, page: this.currentPage },
+        });
+      }
+      this.navigationLocked == false
     },
     isEditing() {
       this.formTitle == "New user" ? true : false;
