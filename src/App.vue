@@ -1,8 +1,20 @@
 <template>
   <div id="app">
-    <router-view/>
+    <NavBarComponent />
+    <v-main>
+      <router-view />
+    </v-main>
   </div>
 </template>
+
+<script>
+import NavBarComponent from "./components/NavBarComponent.vue";
+export default {
+  components: {
+    NavBarComponent,
+  },
+};
+</script>
 
 <style lang="scss">
 #app {
@@ -10,7 +22,6 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
 }
 
 nav {
@@ -18,7 +29,6 @@ nav {
 
   a {
     font-weight: bold;
-    color: #2c3e50;
 
     &.router-link-exact-active {
       color: #42b983;
@@ -26,3 +36,5 @@ nav {
   }
 }
 </style>
+
+
